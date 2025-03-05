@@ -167,7 +167,7 @@ gambling_hq = Specialization("Gambling HQ", 2, 2, 20, 8)
 
 
 # step 1 create a population of random city layout
-grid = 24
+size = 24
 buildings = [fire_station, police_station, hospital]
 
 def create_random_layout(buildings, size):
@@ -195,13 +195,13 @@ def create_random_layout(buildings, size):
     # Add roads to connect buildings
     grid = add_roads(grid, size)
 
-    # Now place residential buildings one by one and connect them to roads
-    residential_count = 0  # Track the number of residential buildings placed
-    while residential_count < 10:  # You can change this number based on your desired number of residential buildings
+    placed_residential = True  # Start by assuming we can place residential buildings
+    while placed_residential:
+        placed_residential = False  # Reset flag
         residential_building = Residential(name="Residential Zone", width=2, height=2)  # Create a new residential building (e.g., 2x2 size)
-        placed = False
         attempts = 0
-        while not placed and attempts < 100:  # Avoid infinite loops
+
+        while attempts < 100:  # Avoid infinite loops
             x, y = random.randint(0, size - residential_building.width), random.randint(0, size - residential_building.height)
 
             # Check if space is empty for the entire building footprint
@@ -211,9 +211,9 @@ def create_random_layout(buildings, size):
                     for j in range(residential_building.height):
                         grid[x + i][y + j] = residential_building
                 # Connect the residential building to roads
-                grid = add_roads(grid, size)
-                residential_count += 1
-                placed = True
+                grid = connect_to_roads(grid, x, y, residential_building.width, residential_building.height, size)
+                placed_residential = True  # Successfully placed a residential building
+                break  # Exit while loop and try to place another residential building
             attempts += 1
 
     # Add roads to connect all buildings (make sure everything is connected to roads)
@@ -222,50 +222,33 @@ def create_random_layout(buildings, size):
     return grid
 
 def add_roads(grid, size):
-    """Adds roads by ensuring each building is connected to the road network."""
-    road_positions = set()
+    """Simple road placement logic."""
+    for i in range(size):
+        for j in range(size):
+            if grid[i][j] is not None:
+                # Check if adjacent space is empty to add a road
+                if i > 0 and grid[i-1][j] is None:  # If space above is empty
+                    grid[i-1][j] = "0"
+                if j > 0 and grid[i][j-1] is None:  # If space to the left is empty
+                    grid[i][j-1] = "0"
+    return grid
 
-    def find_nearest_road(x, y):
-        """Finds the nearest road and returns its coordinates."""
-        queue = [(x, y)]
-        visited = set()
-        while queue:
-            cx, cy = queue.pop(0)
-            if (cx, cy) in road_positions:
-                return cx, cy
-            for nx, ny in [(cx + 1, cy), (cx - 1, cy), (cx, cy + 1), (cx, cy - 1)]:
-                if 0 <= nx < size and 0 <= ny < size and (nx, ny) not in visited:
-                    queue.append((nx, ny))
-                    visited.add((nx, ny))
-        return None  # Shouldn't happen
-
-    # Start with an initial road in the center
-    center_x, center_y = size // 2, size // 2
-    grid[center_x][center_y] = Road()
-    road_positions.add((center_x, center_y))
-
-    # Connect each building to the nearest road
-    for x in range(size):
-        for y in range(size):
-            if isinstance(grid[x][y], Building):
-                nearest_road = find_nearest_road(x, y)
-                if nearest_road:
-                    road_x, road_y = nearest_road
-                    # Create a path from (x, y) to (road_x, road_y)
-                    cx, cy = x, y
-                    while (cx, cy) != (road_x, road_y):
-                        if cx < road_x:
-                            cx += 1
-                        elif cx > road_x:
-                            cx -= 1
-                        elif cy < road_y:
-                            cy += 1
-                        elif cy > road_y:
-                            cy -= 1
-                        if grid[cx][cy] is None:
-                            grid[cx][cy] = Road()
-                            road_positions.add((cx, cy))
-
+def connect_to_roads(grid, x, y, width, height, size):
+    """Connect the given building to roads."""
+    # Look for any empty spaces around the building and place roads there
+    for i in range(x, x + width):
+        for j in range(y, y + height):
+            # If the building cell is placed, try to add roads to adjacent cells
+            if grid[i][j] is not None:
+                # Check all four sides for empty space
+                if i > 0 and grid[i - 1][j] is None:  # Space above
+                    grid[i - 1][j] = "0"
+                if i < size - 1 and grid[i + 1][j] is None:  # Space below
+                    grid[i + 1][j] = "0"
+                if j > 0 and grid[i][j - 1] is None:  # Space left
+                    grid[i][j - 1] = "0"
+                if j < size - 1 and grid[i][j + 1] is None:  # Space right
+                    grid[i][j + 1] = "0"
     return grid
 
 def print_grid(grid):
@@ -278,22 +261,29 @@ def print_grid(grid):
                 print(cell, end=" ")
         print()  # Newline after each row
 
-layout = create_random_layout(buildings, grid)
+layout = create_random_layout(buildings, size)
 
 print_grid(layout)
 
+
 # step 2 sort population of layouts by fitness score
-def population_score(layout):
-    total_residential = 0
-    for i in range(layout.length):
-        for j in range(layout.width):
-            if layout[i][j] == 1:
-                total_residential += 1
-    population = (total_residential // 4) * 1836
-    return population
+def population_score(grid):
+    """Calculates the total population of the city based on residential buildings."""
+    total_residential_zones = 0
+    for row in grid:
+        for cell in row:
+            if isinstance(cell, Residential):
+                total_residential_zones += 1
+    
+    total_residential = (total_residential_zones//4) * 1836
+    return total_residential
+
+print(population_score(layout))
 
 def sort_layouts(layouts):
     return sorted(layouts)
+
+
 
 # apply a cross over function
 def crossover():
@@ -306,3 +296,11 @@ def mutation():
 # create a main genetic algorithm 
 def genetic_algorithm():
     pass
+
+# pj
+# jeff
+# colin
+# logan 
+# karan
+# joe
+
