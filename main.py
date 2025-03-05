@@ -4,6 +4,9 @@ import random
 class Road:
   def __init__(self):
      pass
+  
+  def __str__(self):
+      return "0"
 
 class Building:
     def __init__(self, name, id, width, height):
@@ -22,25 +25,39 @@ class Residential(Building):
         self.health = False
         self.pollution = False
 
+    def __str__(self):
+        return "1"
+
 class Store(Building):
     def __init__(self, name, id, width, height):
         super().__init__(name, id, width, height)
+    def __str__(self):
+        return "S"
 
 class Factory(Building):
-   def __init__(self, name, id, width, height, pollution):
+    def __init__(self, name, id, width, height, pollution):
         super().__init__(name, id, width, height)
         self.pollution = pollution
 
+    def __str__(self):
+        return "f"
+
 class Power(Building):
-   def __init__(self, name, id, width, height, power, pollution):
+    def __init__(self, name, id, width, height, power, pollution):
         super().__init__(name, id, width, height)
         self.power = power
         self.pollution = pollution
+
+    def __str__(self):
+        return "P"
 
 class Water(Building):
     def __init__(self, name, id, width, height, water):
         super().__init__(name, id, width, height)
         self.water = water
+    
+    def __str__(self):
+        return "W"
 
 class Sewage(Building):
     def __init__(self, name, id, width, height, sewage, pollution):
@@ -48,26 +65,41 @@ class Sewage(Building):
         self.sewage = sewage
         self.pollution = pollution
 
+    def __str__(self):
+        return "s"
+
 class Waste(Building):
-   def __init__(self, name, id, width, height, waste, pollution):
+    def __init__(self, name, id, width, height, waste, pollution):
       super().__init__(name, id, width, height)
       self.waste = waste
       self.pollution = pollution
+    
+    def __str__(self):
+        return "w"
 
 class Fire(Building):
-   def __init__(self, name, id, width, height, area):
+    def __init__(self, name, id, width, height, area):
       super().__init__(name, id, width, height)
       self.area = area
+
+    def __str__(self):
+        return "F"
 
 class Police(Building):
-   def __init__(self, name, id, width, height, area):
+    def __init__(self, name, id, width, height, area):
       super().__init__(name, id, width, height)
       self.area = area
 
+    def __str__(self):
+        return "P"
+
 class Health(Building):
-   def __init__(self, name, id, width, height, area):
+    def __init__(self, name, id, width, height, area):
       super().__init__(name, id, width, height)
       self.area = area
+
+    def __str__(self):
+        return "H"
 
 class Specialization(Building):
     def __init__(self, name, id, width, height, boost, area):
@@ -276,14 +308,19 @@ def add_roads(grid, size):
 
     return grid
 
+def print_grid(grid):
+    """Prints the grid with proper character representations."""
+    for row in grid:
+        for cell in row:
+            if cell is None:
+                print(".", end=" ")
+            else:
+                print(cell, end=" ")
+        print()  # Newline after each row
 
 layout = create_random_layout(buildings, grid)
 
-for i in range(grid):
-    for j in range(grid):
-       print(layout[i][j], end=" ")
-    print()
-
+print_grid(layout)
 
 # step 2 sort population of layouts by fitness score
 def population_score(layout):
