@@ -170,6 +170,17 @@ gambling_hq = Specialization("Gambling HQ", 2, 2, 20, 8)
 size = 24
 buildings = [fire_station, police_station, hospital]
 
+def print_grid(grid):
+    """Prints the grid with proper character representations."""
+    for row in grid:
+        for cell in row:
+            if cell is None:
+                print(".", end=" ")
+            else:
+                print(cell, end=" ")
+        print()  # Newline after each row
+
+
 def create_random_layout(buildings, size):
     """Generates a city layout with buildings first, then adds roads to connect them."""
 
@@ -251,21 +262,6 @@ def connect_to_roads(grid, x, y, width, height, size):
                     grid[i][j + 1] = "0"
     return grid
 
-def print_grid(grid):
-    """Prints the grid with proper character representations."""
-    for row in grid:
-        for cell in row:
-            if cell is None:
-                print(".", end=" ")
-            else:
-                print(cell, end=" ")
-        print()  # Newline after each row
-
-layout = create_random_layout(buildings, size)
-
-print_grid(layout)
-
-
 # step 2 sort population of layouts by fitness score
 def population_score(grid):
     """Calculates the total population of the city based on residential buildings."""
@@ -278,22 +274,40 @@ def population_score(grid):
     total_residential = (total_residential_zones//4) * 1836
     return total_residential
 
-print(population_score(layout))
+def generate_population(size):
+    return [create_random_layout() for _ in range(size)]
 
-def sort_layouts(layouts):
-    return sorted(layouts)
+def select_best(population, num_best):
+    return sorted(population, key=population_score, reverse=True)[:num_best]
 
+def crossover(parent1, parent2):
+    crossover_point = random.randint(0, size - 1)
+    child = [row[:] for row in parent1]
+    for i in range(crossover_point, size):
+        child[i] = parent2[i]
+    return child
 
+def mutate(layout):
+    i, j = random.randint(0, size - 1), random.randint(0, size - 1)
+    layout[i][j] = random.choice(buildings)
+    return layout
 
-# apply a cross over function
-def crossover():
-    pass
+# Main genetic algorithm
+def genetic_algorithm(generations=100, population_size=10, mutation_rate=0.2):
+    population = generate_population(population_size)
+    for _ in range(generations):
+        population = select_best(population, population_size // 2)
+        new_population = population[:]
+        while len(new_population) < population_size:
+            parent1, parent2 = random.sample(population, 2)
+            child = crossover(parent1, parent2)
+            if random.random() < mutation_rate:
+                child = mutate(child)
+            new_population.append(child)
+        population = new_population
+    return select_best(population, 1)[0]
 
-# apply a mutuation function
-def mutation():
-    pass
-
-# create a main genetic algorithm 
-def genetic_algorithm():
-    pass
-
+# Run the algorithm
+best_layout = genetic_algorithm()
+print_grid(best_layout)
+print("Max Population:", population_score(best_layout))
