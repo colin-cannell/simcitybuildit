@@ -9,16 +9,15 @@ class Road:
       return "0"
 
 class Building:
-    def __init__(self, name, id, width, height):
+    def __init__(self, name, width, height):
         self.name = name
-        self.id = id
         self.width = width
         self.height = height
         self.connected_to_road = False
 
 class Residential(Building):
-    def __init__(self, name, id, width, height, population):
-        super().__init__(name, id, width, height)
+    def __init__(self, name, width, height, population=1836):
+        super().__init__(name, width, height)
         self.population = population
         self.fire = False
         self.police = False
@@ -29,22 +28,22 @@ class Residential(Building):
         return "1"
 
 class Store(Building):
-    def __init__(self, name, id, width, height):
-        super().__init__(name, id, width, height)
+    def __init__(self, name, width, height):
+        super().__init__(name, width, height)
     def __str__(self):
         return "S"
 
 class Factory(Building):
-    def __init__(self, name, id, width, height, pollution):
-        super().__init__(name, id, width, height)
+    def __init__(self, name, width, height, pollution):
+        super().__init__(name, width, height)
         self.pollution = pollution
 
     def __str__(self):
         return "f"
 
 class Power(Building):
-    def __init__(self, name, id, width, height, power, pollution):
-        super().__init__(name, id, width, height)
+    def __init__(self, name, width, height, power, pollution):
+        super().__init__(name, width, height)
         self.power = power
         self.pollution = pollution
 
@@ -52,16 +51,16 @@ class Power(Building):
         return "P"
 
 class Water(Building):
-    def __init__(self, name, id, width, height, water):
-        super().__init__(name, id, width, height)
+    def __init__(self, name, width, height, water):
+        super().__init__(name, width, height)
         self.water = water
     
     def __str__(self):
         return "W"
 
 class Sewage(Building):
-    def __init__(self, name, id, width, height, sewage, pollution):
-        super().__init__(name, id, width, height)
+    def __init__(self, name, width, height, sewage, pollution):
+        super().__init__(name, width, height)
         self.sewage = sewage
         self.pollution = pollution
 
@@ -69,8 +68,8 @@ class Sewage(Building):
         return "s"
 
 class Waste(Building):
-    def __init__(self, name, id, width, height, waste, pollution):
-      super().__init__(name, id, width, height)
+    def __init__(self, name, width, height, waste, pollution):
+      super().__init__(name, width, height)
       self.waste = waste
       self.pollution = pollution
     
@@ -78,156 +77,93 @@ class Waste(Building):
         return "w"
 
 class Fire(Building):
-    def __init__(self, name, id, width, height, area):
-      super().__init__(name, id, width, height)
+    def __init__(self, name, width, height, area):
+      super().__init__(name, width, height)
       self.area = area
 
     def __str__(self):
         return "F"
 
 class Police(Building):
-    def __init__(self, name, id, width, height, area):
-      super().__init__(name, id, width, height)
+    def __init__(self, name, width, height, area):
+      super().__init__(name, width, height)
       self.area = area
 
     def __str__(self):
         return "P"
 
 class Health(Building):
-    def __init__(self, name, id, width, height, area):
-      super().__init__(name, id, width, height)
+    def __init__(self, name, width, height, area):
+      super().__init__(name, width, height)
       self.area = area
 
     def __str__(self):
         return "H"
 
 class Specialization(Building):
-    def __init__(self, name, id, width, height, boost, area):
-        super().__init__(name, id, width, height)
+    def __init__(self, name, width, height, boost, area):
+        super().__init__(name, width, height)
         self.boost = boost
         self.area = area
 
-class Grid:
-    def __init__(self, length=50, width=68):
-        self.length = length
-        self.width = width
-        self.grid = [[None for _ in range(width)] for _ in range(length)]
+residential = Residential("Residential Zone", 2, 2, 1836)
 
-    def can_place_building(self, building, x, y):
-        if x + building.width > self.width or y + building.height > self.length:
-            return False
-        
-        for i in range(x, x + building.width):
-            for j in range(y, y + building.height):
-                if i < 0 or i >= self.length or j < 0 or j >= self.width:
-                    return False
-                if self.grid[i][j] is not None:
-                    return False
-        
-        if isinstance(building, Residential):
-            if not self.is_within_service_radius(x, y, building.width, building.height):
-                return False
-            if self.is_in_pollution_area(x, y, building.width, building.height):
-                return False
-            if not self.is_connected_to_road(x, y, building.width, building.height):
-                return False
-        
-        return True
-
-    def is_within_service_radius(self, x, y, width, height):
-        service_radius = 5 
-        for i in range(self.length):
-            for j in range(self.width):
-                if isinstance(self.grid[i][j], (Fire, Police, Health)):
-                    if (x < i + service_radius and x + width > i - service_radius and
-                        y < j + service_radius and y + height > j - service_radius):
-                        return True
-        return False
-    
-    def place_building(self, building, x, y):
-        if self.can_place_building(building, x, y):
-            for i in range(x, x + building.width):
-                for j in range(y, y + building.height):
-                    self.grid[i][j] = building
-            return True
-        else:
-            return False
-        
-    def is_in_pollution_area(self, x, y, width, height):
-        for i in range(x, x + width):
-            for j in range(y, y + height):
-                if isinstance(self.grid[i][j], (Factory, Power, Sewage, Waste)):
-                    return True
-        return False
-
-    def is_connected_to_road(self, x, y, width, height):
-        for i in range(x, x + width):
-            for j in range(y, y + height):
-                if (i > 0 and isinstance(self.grid[i - 1][j], Road)) or \
-                   (i < self.length - 1 and isinstance(self.grid[i + 1][j], Road)) or \
-                   (j > 0 and isinstance(self.grid[i][j - 1], Road)) or \
-                   (j < self.width - 1 and isinstance(self.grid[i][j + 1], Road)):
-                    return True
-        return False
-    
-residential = Residential("Residential Zone", 1, 2, 2, 1836)
-
-building_supplies = Store("Building Supplies", 2, 2, 2)
-hardware_store = Store("Hardware Store", 3, 2, 2)
-farmers_market = Store("Farmers Market", 4, 2, 2)
-furniture_store = Store("Furniture Store", 5, 2, 2)
-gardening_supplies = Store("Gardening Supplies", 6, 2, 2)
-donut_shop = Store("Donut Shop", 7, 2, 2)
-fashion_store = Store("Fashion Store", 8, 2, 2)
-fast_food = Store("Fast Food Restaurant", 9, 2, 2)
-home_appliances = Store("Home Appliances", 10, 2, 2)
-sports_shop = Store("Sports Shop", 11, 2, 2)
-toy_shop = Store("Toy Shop", 12, 2, 2)
-restoration_bureau = Store("Bureau of Restoration", 13, 2, 2)
-country_store = Store("Country Store", 14, 2, 2)
-desert_shop = Store("Desert Shop", 15, 2, 2)
+building_supplies = Store("Building Supplies", 2, 2)
+hardware_store = Store("Hardware Store", 2, 2)
+farmers_market = Store("Farmers Market", 2, 2)
+furniture_store = Store("Furniture Store", 2, 2)
+gardening_supplies = Store("Gardening Supplies", 2, 2)
+donut_shop = Store("Donut Shop", 2, 2)
+fashion_store = Store("Fashion Store", 2, 2)
+fast_food = Store("Fast Food Restaurant", 2, 2)
+home_appliances = Store("Home Appliances", 2, 2)
+sports_shop = Store("Sports Shop", 2, 2)
+toy_shop = Store("Toy Shop", 2, 2)
+restoration_bureau = Store("Bureau of Restoration", 2, 2)
+country_store = Store("Country Store", 2, 2)
+desert_shop = Store("Desert Shop", 2, 2)
 
 
-high_tech_factory = Factory("High Tech Factory", 16, 2, 2, (6, 6))
+high_tech_factory = Factory("High Tech Factory", 2, 2, (6, 6))
 
-nuclear_plant = Power("Nuclear Power Plant", 17, 4, 3, 60, (12, 12))
-water_station = Water("Water Pumping Station", 18, 2, 2, 55)
-sewage_plant = Sewage("Deluxe Sewage Plant", 19, 3, 2, 55, (0, 0))
-recycling_center = Waste("Recycling Center", 20, 3, 2, 50, (0, 0))
+nuclear_plant = Power("Nuclear Power Plant", 4, 3, 60, (12, 12))
+water_station = Water("Water Pumping Station", 2, 2, 55)
+sewage_plant = Sewage("Deluxe Sewage Plant", 3, 2, 55, (0, 0))
+recycling_center = Waste("Recycling Center", 3, 2, 50, (0, 0))
 
-fire_station = Fire("Deluxe Fire Station", 21, 4, 2, (22, 22))
-police_station = Police("Police Precinct", 22, 4, 2, (22, 22))
-hospital = Health("Hospital", 23, 4, 2, (24, 24))
+fire_station = Fire("Deluxe Fire Station", 4, 2, (22, 22))
+police_station = Police("Police Precinct", 4, 2, (22, 22))
+hospital = Health("Hospital", 4, 2, (24, 24))
 
-city_storage = Building("City Storage", 24, 3, 2)
-city_hall = Building("City Hall", 25, 3, 2)
-clock_tower = Building("Clock Tower", 26, 2, 2)
-town_hall = Building("Town Hall", 27, 3, 2)
-mayors_mansion = Building("Mayor's Mansion", 28, 3, 3)
+city_storage = Building("City Storage", 3, 2)
+city_hall = Building("City Hall", 3, 2)
+clock_tower = Building("Clock Tower", 2, 2)
+town_hall = Building("Town Hall", 3, 2)
+mayors_mansion = Building("Mayor's Mansion", 3, 3)
 
 # Parks
-jogging_path = Specialization("Jogging Path", 29, 2, 2, 30, 8)
-university_cafe = Specialization("University Park Cafeteria", 30, 2, 2, 25, 10)
-reflection_pool = Specialization("Reflection Pool Park", 31, 2, 1, 20, 8)
-peaceful_park = Specialization("Peaceful Park", 32, 2, 1, 25, 10)
-urban_plaza = Specialization("Urban Plaza", 33, 2, 1, 20, 8)
-sculpture_garden = Specialization("Sculpture Garden", 34, 2, 1, 30, 8)
-tree_row = Specialization("Row of Trees", 35, 2, 1, 30, 12)
-casino_park = Specialization("Casino City Park", 36, 2, 2, 15, 10)
-soccer_field = Specialization("Soccer Field", 37, 2, 2, 25, 8)
-baseball_field = Specialization("Baseball Field", 38, 2, 2, 25, 8)
-swimming_pool = Specialization("Swimming Pool", 39, 4, 2, 15, 14)
-golf_course = Specialization("Golf Course", 40, 4, 6, 15, 16)
+jogging_path = Specialization("Jogging Path", 2, 2, 30, 8)
+university_cafe = Specialization("University Park Cafeteria", 2, 2, 25, 10)
+reflection_pool = Specialization("Reflection Pool Park", 2, 1, 20, 8)
+peaceful_park = Specialization("Peaceful Park", 2, 1, 25, 10)
+urban_plaza = Specialization("Urban Plaza", 2, 1, 20, 8)
+sculpture_garden = Specialization("Sculpture Garden", 2, 1, 30, 8)
+tree_row = Specialization("Row of Trees", 2, 1, 30, 12)
+casino_park = Specialization("Casino City Park", 2, 2, 15, 10)
+soccer_field = Specialization("Soccer Field", 2, 2, 25, 8)
+baseball_field = Specialization("Baseball Field", 2, 2, 25, 8)
+swimming_pool = Specialization("Swimming Pool", 4, 2, 15, 14)
+golf_course = Specialization("Golf Course", 4, 6, 15, 16)
 
 # specialization
-surfer_beach = Specialization("Surfer Beach", 42, 2, 1, 10, 12)
-cozy_cottages = Specialization("Cozy Cottages", 44, 2, 1, 20, 12)
+surfer_beach = Specialization("Surfer Beach", 2, 1, 10, 12)
+cozy_cottages = Specialization("Cozy Cottages", 2, 1, 20, 12)
 
 # entertainment
-entertainment_hq = Specialization("Entertainment HQ", 43, 2, 2, 20, 8)
+entertainment_hq = Specialization("Entertainment HQ", 2, 2, 20, 8)
 
 # Gambling
-gambling_hq = Specialization("Gambling HQ", 45, 2, 2, 20, 8)
+gambling_hq = Specialization("Gambling HQ", 2, 2, 20, 8)
 
 
 # step 1 create a population of random city layout
@@ -257,6 +193,30 @@ def create_random_layout(buildings, size):
             attempts += 1
 
     # Add roads to connect buildings
+    grid = add_roads(grid, size)
+
+    # Now place residential buildings one by one and connect them to roads
+    residential_count = 0  # Track the number of residential buildings placed
+    while residential_count < 10:  # You can change this number based on your desired number of residential buildings
+        residential_building = Residential(name="Residential Zone", width=2, height=2)  # Create a new residential building (e.g., 2x2 size)
+        placed = False
+        attempts = 0
+        while not placed and attempts < 100:  # Avoid infinite loops
+            x, y = random.randint(0, size - residential_building.width), random.randint(0, size - residential_building.height)
+
+            # Check if space is empty for the entire building footprint
+            if all(grid[x + i][y + j] is None for i in range(residential_building.width) for j in range(residential_building.height)):
+                # Place residential building
+                for i in range(residential_building.width):
+                    for j in range(residential_building.height):
+                        grid[x + i][y + j] = residential_building
+                # Connect the residential building to roads
+                grid = add_roads(grid, size)
+                residential_count += 1
+                placed = True
+            attempts += 1
+
+    # Add roads to connect all buildings (make sure everything is connected to roads)
     grid = add_roads(grid, size)
 
     return grid
