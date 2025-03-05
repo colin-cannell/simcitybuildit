@@ -181,6 +181,91 @@ def print_grid(grid):
         print()  # Newline after each row
 
 
+import pygame
+
+# Define colors
+COLORS = {
+    'road': (169, 169, 169),        # Grey for roads
+    'residential': (144, 238, 144), # Light green for residential zones
+    'store': (255, 223, 186),       # Light yellow for stores
+    'factory': (255, 99, 71),       # Red for factories
+    'power': (255, 215, 0),         # Yellow for power plants
+    'water': (0, 191, 255),         # Light blue for water stations
+    'sewage': (139, 69, 19),        # Brown for sewage plants
+    'waste': (128, 128, 128),       # Grey for waste centers
+    'fire': (255, 0, 0),            # Red for fire stations
+    'police': (0, 0, 255),          # Blue for police stations
+    'health': (0, 255, 0),          # Green for health
+    'specialization': (255, 165, 0) # Orange for parks and specializations
+}
+
+def visualize_grid(grid, size=24, cell_size=30):
+    """
+    Visualizes the grid using pygame.
+    grid: 2D list of buildings.
+    size: size of the grid (grid is size x size).
+    cell_size: size of each cell in the grid (in pixels).
+    """
+    # Initialize pygame
+    pygame.init()
+
+    # Set the size of the window based on grid size and cell size
+    window_size = size * cell_size
+    screen = pygame.display.set_mode((window_size, window_size))
+    pygame.display.set_caption('City Layout Visualization')
+
+    # Run the game loop
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        # Fill the screen with white
+        screen.fill((255, 255, 255))
+
+        # Draw the grid
+        for i in range(size):
+            for j in range(size):
+                building = grid[i][j]
+                rect = pygame.Rect(j * cell_size, i * cell_size, cell_size, cell_size)
+                
+                # Determine color based on building type
+                if isinstance(building, Residential):
+                    pygame.draw.rect(screen, COLORS['residential'], rect)
+                elif isinstance(building, Store):
+                    pygame.draw.rect(screen, COLORS['store'], rect)
+                elif isinstance(building, Factory):
+                    pygame.draw.rect(screen, COLORS['factory'], rect)
+                elif isinstance(building, Power):
+                    pygame.draw.rect(screen, COLORS['power'], rect)
+                elif isinstance(building, Water):
+                    pygame.draw.rect(screen, COLORS['water'], rect)
+                elif isinstance(building, Sewage):
+                    pygame.draw.rect(screen, COLORS['sewage'], rect)
+                elif isinstance(building, Waste):
+                    pygame.draw.rect(screen, COLORS['waste'], rect)
+                elif isinstance(building, Fire):
+                    pygame.draw.rect(screen, COLORS['fire'], rect)
+                elif isinstance(building, Police):
+                    pygame.draw.rect(screen, COLORS['police'], rect)
+                elif isinstance(building, Health):
+                    pygame.draw.rect(screen, COLORS['health'], rect)
+                elif isinstance(building, Specialization):
+                    pygame.draw.rect(screen, COLORS['specialization'], rect)
+                elif building == "0":  # Road
+                    pygame.draw.rect(screen, COLORS['road'], rect)
+
+                # Draw the grid lines
+                pygame.draw.rect(screen, (0, 0, 0), rect, 1)
+
+        # Update the display
+        pygame.display.flip()
+
+    # Quit pygame
+    pygame.quit()
+
+
 def create_random_layout(buildings, size):
     """Generates a city layout with buildings first, then adds roads to connect them."""
 
@@ -275,21 +360,23 @@ def population_score(grid):
     return total_residential
 
 def generate_population(size):
-    return [create_random_layout() for _ in range(size)]
+    return [create_random_layout(buildings, size) for _ in range(size)]
 
 def select_best(population, num_best):
     return sorted(population, key=population_score, reverse=True)[:num_best]
 
 def crossover(parent1, parent2):
-    crossover_point = random.randint(0, size - 1)
+    crossover_point = random.randint(0, len(parent1) - 1)  # Ensure it's within the grid size
     child = [row[:] for row in parent1]
-    for i in range(crossover_point, size):
+    for i in range(crossover_point, len(parent2)):  # Ensure the range is within bounds
         child[i] = parent2[i]
     return child
 
 def mutate(layout):
-    i, j = random.randint(0, size - 1), random.randint(0, size - 1)
-    layout[i][j] = random.choice(buildings)
+    i, j = random.randint(0, len(layout) - 1), random.randint(0, len(layout[0]) - 1)  # Ensure i and j are within bounds
+    # Randomly choose a building type to place (ensure that it's valid)
+    new_building = random.choice([Residential("Residential Zone", 2, 2)]) 
+    layout[i][j] = new_building
     return layout
 
 # Main genetic algorithm
@@ -311,3 +398,5 @@ def genetic_algorithm(generations=100, population_size=10, mutation_rate=0.2):
 best_layout = genetic_algorithm()
 print_grid(best_layout)
 print("Max Population:", population_score(best_layout))
+
+visualize_grid(best_layout)
