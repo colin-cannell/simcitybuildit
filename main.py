@@ -202,15 +202,87 @@ gambling_hq = Specialization("Gambling HQ", 45, 2, 2, 20, 8)
 grid = 24
 buildings = [fire_station, police_station, hospital]
 
-# add roads to the layout
-def add_roads(layout):
-    pass
+def create_random_layout(buildings, size):
+    """Generates a city layout with buildings first, then adds roads to connect them."""
 
-# random layout of buildings but they need to be connected by roads and in the area of police coverage
-def random_layout(buildings, size):
-    grid = [[random.choice(buildings) for _ in range(size)] for _ in range(size)]
-    layout = add_roads(grid)
-    return layout
+    # Initialize empty grid
+    grid = [[None for _ in range(size)] for _ in range(size)]
+
+    # Place buildings randomly, ensuring no overlap
+    for building in buildings:
+        placed = False
+        attempts = 0
+        while not placed and attempts < 100:  # Avoid infinite loops
+            x, y = random.randint(0, size - building.width), random.randint(0, size - building.height)
+
+            # Check if space is empty for the entire building footprint
+            if all(grid[x + i][y + j] is None for i in range(building.width) for j in range(building.height)):
+                # Place building
+                for i in range(building.width):
+                    for j in range(building.height):
+                        grid[x + i][y + j] = building
+                placed = True
+            attempts += 1
+
+    # Add roads to connect buildings
+    grid = add_roads(grid, size)
+
+    return grid
+
+def add_roads(grid, size):
+    """Adds roads by ensuring each building is connected to the road network."""
+    road_positions = set()
+
+    def find_nearest_road(x, y):
+        """Finds the nearest road and returns its coordinates."""
+        queue = [(x, y)]
+        visited = set()
+        while queue:
+            cx, cy = queue.pop(0)
+            if (cx, cy) in road_positions:
+                return cx, cy
+            for nx, ny in [(cx + 1, cy), (cx - 1, cy), (cx, cy + 1), (cx, cy - 1)]:
+                if 0 <= nx < size and 0 <= ny < size and (nx, ny) not in visited:
+                    queue.append((nx, ny))
+                    visited.add((nx, ny))
+        return None  # Shouldn't happen
+
+    # Start with an initial road in the center
+    center_x, center_y = size // 2, size // 2
+    grid[center_x][center_y] = Road()
+    road_positions.add((center_x, center_y))
+
+    # Connect each building to the nearest road
+    for x in range(size):
+        for y in range(size):
+            if isinstance(grid[x][y], Building):
+                nearest_road = find_nearest_road(x, y)
+                if nearest_road:
+                    road_x, road_y = nearest_road
+                    # Create a path from (x, y) to (road_x, road_y)
+                    cx, cy = x, y
+                    while (cx, cy) != (road_x, road_y):
+                        if cx < road_x:
+                            cx += 1
+                        elif cx > road_x:
+                            cx -= 1
+                        elif cy < road_y:
+                            cy += 1
+                        elif cy > road_y:
+                            cy -= 1
+                        if grid[cx][cy] is None:
+                            grid[cx][cy] = Road()
+                            road_positions.add((cx, cy))
+
+    return grid
+
+
+layout = create_random_layout(buildings, grid)
+
+for i in range(grid):
+    for j in range(grid):
+       print(layout[i][j], end=" ")
+    print()
 
 
 # step 2 sort population of layouts by fitness score
