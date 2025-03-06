@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import pygame as pg
 
 
 class Road:
@@ -202,6 +203,9 @@ gambling_hq = Specialization("Gambling HQ", 2, 2, 20, 8)
 
 # step 1 create a population of random city layout
 size = 50
+required = [city_storage, city_hall, clock_tower, town_hall, mayors_mansion]
+stores = [building_supplies, hardware_store, farmers_market, furniture_store, gardening_supplies, donut_shop, fashion_store, fast_food, home_appliances, sports_shop, toy_shop, restoration_bureau, country_store, desert_shop]
+
 buildings = [fire_station, police_station, hospital]
 
 def print_grid(grid):
@@ -213,6 +217,49 @@ def print_grid(grid):
             else:
                 print(cell, end=" ")
         print()  # Newline after each row
+
+def visualize_grid(grid, size):
+    cell_size = 10
+
+    pg.init()
+    screen = pg.display.set_mode((size * cell_size, size * cell_size))
+
+    while True:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                pg.quit()
+                return
+
+        screen.fill((255, 255, 255))  # Clear screen before drawing
+
+        for i, row in enumerate(grid):
+            for j, cell in enumerate(row):
+                if cell is None:
+                    color = (255, 255, 255)  # White for empty spaces
+                elif isinstance(cell, Residential):
+                    color = (100, 100, 100)  # Gray for Residential
+                elif isinstance(cell, Road):
+                    color = (0, 0, 0)  # Black for Road
+                elif isinstance(cell, Fire):
+                    color = (255, 0, 0)  # Red for Fire Station
+                elif isinstance(cell, Police):
+                    color = (0, 0, 255)  # Blue for Police Station
+                elif isinstance(cell, Health):
+                    color = (0, 255, 0)  # Green for Health
+                else:
+                    color = (200, 200, 200)  # Default color for other buildings
+                
+                # Draw the cell
+                pg.draw.rect(screen, color, (j * cell_size, i * cell_size, cell_size, cell_size))
+
+        # Draw grid lines
+        for x in range(0, size * cell_size, cell_size):
+            pg.draw.line(screen, (0, 0, 0), (x, 0), (x, size * cell_size))  # Vertical lines
+        for y in range(0, size * cell_size, cell_size):
+            pg.draw.line(screen, (0, 0, 0), (0, y), (size * cell_size, y))  # Horizontal lines
+
+        pg.display.flip()
+
 
 
 def create_random_layout(buildings, size):
@@ -318,29 +365,27 @@ def select_best(population, num_best):
 # instead of cutting them in half and combining them 
 # instead overlay them and find commonalities
 def crossover(parent1, parent2):
-    # Ensure both parents are of the same grid size
-    rows = len(parent1)
-    cols = len(parent1[0])
+    # Ensure both parents have the same grid size
+    rows, cols = len(parent1), len(parent1[0])
 
-    # Randomly select a crossover point
-    crossover_point = random.randint(1, rows - 1)  # Ensures the split doesn't happen at the very start or end
-    
-    # Initialize the child layout as a copy of parent1
-    child = [row[:] for row in parent1]
-    
-    # Swap part of the grid from parent2
-    for i in range(crossover_point, rows):
-        child[i] = parent2[i]
-    
-    # Return the child layout
+    # Create an empty child grid
+    child = [[None for _ in range(cols)] for _ in range(rows)]
+
+    # Overlay the two parents and keep only matching buildings
+    for i in range(rows):
+        for j in range(cols):
+            if parent1[i][j] == parent2[i][j]:  # Keep only if identical
+                child[i][j] = parent1[i][j]
+
     return child
+
 
 def mutate(layout):
     i, j = random.randint(0, len(layout) - 2), random.randint(0, len(layout[0]) - 2)  # Stay within 2x2 bounds
 
     #TODO: add more buildings to this
-    new_building = Residential("Residential Zone", 2, 2)
-
+    # new_building = Residential("Residential Zone", 2, 2)
+    new_building = random.choice([Residential("Residential Zone", 2, 2), Fire("Fire Station", 4, 2, (24, 24)), Police("Police Station", 4, 2, 0), Health("Health", 4, 2, (24, 24))])
     # Ensure the full 2x2 space is empty
     if all(layout[x][y] is None for x in range(i, i + 2) for y in range(j, j + 2)):
         for x in range(i, i + 2):
@@ -351,7 +396,7 @@ def mutate(layout):
 
 
 # Main genetic algorithm
-def genetic_algorithm(generations=200, population_size=10, grid_size=10, mutation_rate=0.2):
+def genetic_algorithm(generations=200, population_size=10, grid_size=50, mutation_rate=0.5):
     population = generate_population(grid_size, population_size)
     for _ in range(generations):
         population = select_best(population, population_size // 2)
@@ -386,3 +431,18 @@ for row in best_layout[0]:
 # Calculate and print the population score
 max_population = population_score(best_layout[0])
 print("Max Population:", max_population)
+
+# Visualize the best layout
+visualize_grid(best_layout[0], 50)
+
+# add functionality to add all the buildings to the grid
+# all polution checking
+# add chekcing if the building is connected to road
+# add optimtimize roads
+# add checking if building is in an area covered by police health and fire
+
+# find best layout loop
+# find best layout near mountains
+# find best layout near beach
+
+# combine beach and mountain layouts with the layout looop
