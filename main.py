@@ -298,14 +298,15 @@ def connect_to_roads(grid, x, y, width, height, size):
 
 # step 2 sort population of layouts by fitness score
 def population_score(grid):
-    """Calculates the total population of the city based on residential buildings."""
     total_residential_zones = 0
     for row in grid:
         for cell in row:
-            if isinstance(cell, Residential):
+            # Check if the cell is an instance of Residential or if it equals '1'
+            if isinstance(cell, Residential) or (isinstance(cell, str) and cell == '1'):
                 total_residential_zones += 1
     
-    total_residential = (total_residential_zones//4) * 1836
+    # Each Residential building has a population of 1836
+    total_residential = total_residential_zones * 1836
     return total_residential
 
 def generate_population(size):
@@ -336,7 +337,9 @@ def mutate(layout):
     i, j = random.randint(0, len(layout) - 1), random.randint(0, len(layout[0]) - 1)  # Ensure i and j are within bounds
     # Randomly choose a building type to place (ensure that it's valid)
     new_building = random.choice([Residential("Residential Zone", 2, 2)]) 
-    layout[i][j] = new_building
+    # Check if the space is empty before placing
+    if layout[i][j] is None:  # Only place if the spot is empty
+        layout[i][j] = new_building
     return layout
 
 # Main genetic algorithm
@@ -357,6 +360,7 @@ def genetic_algorithm(generations=100, population_size=10, mutation_rate=0.2):
 # Run the algorithm
 best_layout = genetic_algorithm()
 
+# Print the best layout
 for row in best_layout[0]:
     for cell in row:
         if cell is None:
@@ -364,12 +368,36 @@ for row in best_layout[0]:
         else:
             print(cell, end=" ")
     print()  # Newline after each row
-    
-print("Max Population:", population_score(best_layout))
+
+# Calculate and print the population score
+max_population = population_score(best_layout[0])
+print("Max Population:", max_population)
 
 # write a function to check if child is valid
 # all buuldings are connected to road
 # police, fire, health must be all in the same block
 
 def is_valid_child(layout):
-    pass
+    # Check if all buildings are connected to roads
+    for i in range(len(layout)):
+        for j in range(len(layout[i])):
+            if isinstance(layout[i][j], Building):
+                # Check if the building is adjacent to a road
+                if not ((i > 0 and layout[i-1][j] == "0") or
+                        (i < len(layout) - 1 and layout[i+1][j] == "0") or
+                        (j > 0 and layout[i][j-1] == "0") or
+                        (j < len(layout[i]) - 1 and layout[i][j+1] == "0")):
+                    return False  # Not connected to a road
+
+    # Check if police, fire, and health are in the same block
+    services = []
+    for row in layout:
+        for cell in row:
+            if isinstance(cell, (Police, Fire, Health)):
+                services.append((cell, row.index(cell)))  # Store the service and its position
+
+    # Check if all services are in the same block (same row)
+    if len(set(pos[1] for pos in services)) > 1:  # If they are not in the same row
+        return False
+
+    return True
