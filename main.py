@@ -238,7 +238,7 @@ def visualize_grid(grid, size):
                     color = (255, 255, 255)  # White for empty spaces
                 elif isinstance(cell, Residential):
                     color = (100, 100, 100)  # Gray for Residential
-                elif isinstance(cell, Road):
+                elif isinstance(cell, Road) or cell == "0":
                     color = (0, 0, 0)  # Black for Road
                 elif isinstance(cell, Fire):
                     color = (255, 0, 0)  # Red for Fire Station
@@ -396,7 +396,7 @@ def mutate(layout):
 
 
 # Main genetic algorithm
-def genetic_algorithm(generations=200, population_size=10, grid_size=50, mutation_rate=0.5):
+def genetic_algorithm(generations=200, population_size=10, grid_size=50, mutation_rate=0.8):
     population = generate_population(grid_size, population_size)
     for _ in range(generations):
         population = select_best(population, population_size // 2)
@@ -417,23 +417,24 @@ def genetic_algorithm(generations=200, population_size=10, grid_size=50, mutatio
 # create a visualozation function for it
 
 # Run the algorithm
-best_layout = genetic_algorithm()
+if __name__ == "__main__":
+    best_layout = genetic_algorithm()
 
-# Print the best layout
-for row in best_layout[0]:
-    for cell in row:
-        if cell is None:
-            print(".", end=" ")
-        else:
-            print(cell, end=" ")
-    print()  # Newline after each row
+    # Print the best layout
+    for row in best_layout[0]:
+        for cell in row:
+            if cell is None:
+                print(".", end=" ")
+            else:
+                print(cell, end=" ")
+        print()  # Newline after each row
 
-# Calculate and print the population score
-max_population = population_score(best_layout[0])
-print("Max Population:", max_population)
+    # Calculate and print the population score
+    max_population = population_score(best_layout[0])
+    print("Max Population:", max_population)
 
-# Visualize the best layout
-visualize_grid(best_layout[0], 50)
+    # Visualize the best layout
+    visualize_grid(best_layout[0], 50)
 
 # add functionality to add all the buildings to the grid
 # all polution checking
@@ -446,3 +447,8 @@ visualize_grid(best_layout[0], 50)
 # find best layout near beach
 
 # combine beach and mountain layouts with the layout looop
+
+# roads should be one width and be all inter connected
+
+
+
