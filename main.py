@@ -315,6 +315,8 @@ def generate_population(size, population_size=10):
 def select_best(population, num_best):
     return sorted(population, key=population_score, reverse=True)[:num_best]
 
+# instead of cutting them in half and combining them 
+# instead overlay them and find commonalities
 def crossover(parent1, parent2):
     # Ensure both parents are of the same grid size
     rows = len(parent1)
@@ -334,16 +336,22 @@ def crossover(parent1, parent2):
     return child
 
 def mutate(layout):
-    i, j = random.randint(0, len(layout) - 1), random.randint(0, len(layout[0]) - 1)  # Ensure i and j are within bounds
-    # Randomly choose a building type to place (ensure that it's valid)
-    new_building = random.choice([Residential("Residential Zone", 2, 2)]) 
-    # Check if the space is empty before placing
-    if layout[i][j] is None:  # Only place if the spot is empty
-        layout[i][j] = new_building
+    i, j = random.randint(0, len(layout) - 2), random.randint(0, len(layout[0]) - 2)  # Stay within 2x2 bounds
+
+    #TODO: add more buildings to this
+    new_building = Residential("Residential Zone", 2, 2)
+
+    # Ensure the full 2x2 space is empty
+    if all(layout[x][y] is None for x in range(i, i + 2) for y in range(j, j + 2)):
+        for x in range(i, i + 2):
+            for y in range(j, j + 2):
+                layout[x][y] = new_building
+
     return layout
 
+
 # Main genetic algorithm
-def genetic_algorithm(generations=200, population_size=10, grid_size=50, mutation_rate=0.2):
+def genetic_algorithm(generations=200, population_size=10, grid_size=10, mutation_rate=0.2):
     population = generate_population(grid_size, population_size)
     for _ in range(generations):
         population = select_best(population, population_size // 2)
