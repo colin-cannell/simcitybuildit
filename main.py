@@ -1,6 +1,7 @@
 import numpy as np
 import random
 
+
 class Road:
   def __init__(self):
      pass
@@ -26,12 +27,20 @@ class Residential(Building):
 
     def __str__(self):
         return "1"
+    
+    def __repr__(self) -> str:
+       return "1"
 
 class Store(Building):
     def __init__(self, name, width, height):
         super().__init__(name, width, height)
+
     def __str__(self):
         return "S"
+    
+    def __repr__(self) -> str:
+       return "S"
+    
 
 class Factory(Building):
     def __init__(self, name, width, height, pollution):
@@ -40,6 +49,9 @@ class Factory(Building):
 
     def __str__(self):
         return "f"
+    
+    def __repr__(self) -> str:
+         return "f"
 
 class Power(Building):
     def __init__(self, name, width, height, power, pollution):
@@ -49,6 +61,9 @@ class Power(Building):
 
     def __str__(self):
         return "P"
+    
+    def __repr__(self) -> str:
+         return "P"
 
 class Water(Building):
     def __init__(self, name, width, height, water):
@@ -56,6 +71,9 @@ class Water(Building):
         self.water = water
     
     def __str__(self):
+        return "W"
+    
+    def __repr__(self) -> str:
         return "W"
 
 class Sewage(Building):
@@ -66,6 +84,9 @@ class Sewage(Building):
 
     def __str__(self):
         return "s"
+    
+    def __repr__(self) -> str:
+        return "s"
 
 class Waste(Building):
     def __init__(self, name, width, height, waste, pollution):
@@ -75,6 +96,10 @@ class Waste(Building):
     
     def __str__(self):
         return "w"
+    
+    def __repr__(self) -> str:
+        return "w"
+
 
 class Fire(Building):
     def __init__(self, name, width, height, area):
@@ -82,6 +107,9 @@ class Fire(Building):
       self.area = area
 
     def __str__(self):
+        return "F"
+    
+    def __repr__(self) -> str:
         return "F"
 
 class Police(Building):
@@ -91,6 +119,9 @@ class Police(Building):
 
     def __str__(self):
         return "P"
+    
+    def __repr__(self) -> str:
+        return "P"
 
 class Health(Building):
     def __init__(self, name, width, height, area):
@@ -98,6 +129,9 @@ class Health(Building):
       self.area = area
 
     def __str__(self):
+        return "H"
+    
+    def __repr__(self) -> str:
         return "H"
 
 class Specialization(Building):
@@ -179,91 +213,6 @@ def print_grid(grid):
             else:
                 print(cell, end=" ")
         print()  # Newline after each row
-
-
-import pygame
-
-# Define colors
-COLORS = {
-    'road': (169, 169, 169),        # Grey for roads
-    'residential': (144, 238, 144), # Light green for residential zones
-    'store': (255, 223, 186),       # Light yellow for stores
-    'factory': (255, 99, 71),       # Red for factories
-    'power': (255, 215, 0),         # Yellow for power plants
-    'water': (0, 191, 255),         # Light blue for water stations
-    'sewage': (139, 69, 19),        # Brown for sewage plants
-    'waste': (128, 128, 128),       # Grey for waste centers
-    'fire': (255, 0, 0),            # Red for fire stations
-    'police': (0, 0, 255),          # Blue for police stations
-    'health': (0, 255, 0),          # Green for health
-    'specialization': (255, 165, 0) # Orange for parks and specializations
-}
-
-def visualize_grid(grid, size=24, cell_size=30):
-    """
-    Visualizes the grid using pygame.
-    grid: 2D list of buildings.
-    size: size of the grid (grid is size x size).
-    cell_size: size of each cell in the grid (in pixels).
-    """
-    # Initialize pygame
-    pygame.init()
-
-    # Set the size of the window based on grid size and cell size
-    window_size = size * cell_size
-    screen = pygame.display.set_mode((window_size, window_size))
-    pygame.display.set_caption('City Layout Visualization')
-
-    # Run the game loop
-    running = True
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
-        # Fill the screen with white
-        screen.fill((255, 255, 255))
-
-        # Draw the grid
-        for i in range(size):
-            for j in range(size):
-                building = grid[i][j]
-                rect = pygame.Rect(j * cell_size, i * cell_size, cell_size, cell_size)
-                
-                # Determine color based on building type
-                if isinstance(building, Residential):
-                    pygame.draw.rect(screen, COLORS['residential'], rect)
-                elif isinstance(building, Store):
-                    pygame.draw.rect(screen, COLORS['store'], rect)
-                elif isinstance(building, Factory):
-                    pygame.draw.rect(screen, COLORS['factory'], rect)
-                elif isinstance(building, Power):
-                    pygame.draw.rect(screen, COLORS['power'], rect)
-                elif isinstance(building, Water):
-                    pygame.draw.rect(screen, COLORS['water'], rect)
-                elif isinstance(building, Sewage):
-                    pygame.draw.rect(screen, COLORS['sewage'], rect)
-                elif isinstance(building, Waste):
-                    pygame.draw.rect(screen, COLORS['waste'], rect)
-                elif isinstance(building, Fire):
-                    pygame.draw.rect(screen, COLORS['fire'], rect)
-                elif isinstance(building, Police):
-                    pygame.draw.rect(screen, COLORS['police'], rect)
-                elif isinstance(building, Health):
-                    pygame.draw.rect(screen, COLORS['health'], rect)
-                elif isinstance(building, Specialization):
-                    pygame.draw.rect(screen, COLORS['specialization'], rect)
-                elif building == "0":  # Road
-                    pygame.draw.rect(screen, COLORS['road'], rect)
-
-                # Draw the grid lines
-                pygame.draw.rect(screen, (0, 0, 0), rect, 1)
-
-        # Update the display
-        pygame.display.flip()
-
-    # Quit pygame
-    pygame.quit()
 
 
 def create_random_layout(buildings, size):
@@ -366,10 +315,21 @@ def select_best(population, num_best):
     return sorted(population, key=population_score, reverse=True)[:num_best]
 
 def crossover(parent1, parent2):
-    crossover_point = random.randint(0, len(parent1) - 1)  # Ensure it's within the grid size
+    # Ensure both parents are of the same grid size
+    rows = len(parent1)
+    cols = len(parent1[0])
+
+    # Randomly select a crossover point
+    crossover_point = random.randint(1, rows - 1)  # Ensures the split doesn't happen at the very start or end
+    
+    # Initialize the child layout as a copy of parent1
     child = [row[:] for row in parent1]
-    for i in range(crossover_point, len(parent2)):  # Ensure the range is within bounds
+    
+    # Swap part of the grid from parent2
+    for i in range(crossover_point, rows):
         child[i] = parent2[i]
+    
+    # Return the child layout
     return child
 
 def mutate(layout):
@@ -392,11 +352,24 @@ def genetic_algorithm(generations=100, population_size=10, mutation_rate=0.2):
                 child = mutate(child)
             new_population.append(child)
         population = new_population
-    return select_best(population, 1)[0]
+    return select_best(population, 1)
 
 # Run the algorithm
 best_layout = genetic_algorithm()
-print_grid(best_layout)
+
+for row in best_layout[0]:
+    for cell in row:
+        if cell is None:
+            print(".", end=" ")
+        else:
+            print(cell, end=" ")
+    print()  # Newline after each row
+    
 print("Max Population:", population_score(best_layout))
 
-visualize_grid(best_layout)
+# write a function to check if child is valid
+# all buuldings are connected to road
+# police, fire, health must be all in the same block
+
+def is_valid_child(layout):
+    pass
